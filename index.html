@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Divorce Predictor 💔</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+}
+
+/* 🌌 animated background */
+.background {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(-45deg, #ff416c, #1e1e2f, #ff4b2b, #0f0f0f);
+  background-size: 400% 400%;
+  animation: moveBG 10s ease infinite;
+  z-index: -1;
+}
+
+@keyframes moveBG {
+  0% {background-position: 0% 50%;}
+  50% {background-position: 100% 50%;}
+  100% {background-position: 0% 50%;}
+}
+
+/* 🧊 glass card */
+.container {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 25px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 420px;
+  text-align: center;
+  color: white;
+  box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+h1 {
+  color: #ff4d6d;
+}
+
+input, select {
+  width: 90%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+}
+
+button {
+  padding: 12px 20px;
+  margin: 8px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.primary {
+  background: #ff4d6d;
+  color: white;
+}
+
+.secondary {
+  background: #ffffff20;
+  color: white;
+}
+
+#result {
+  margin-top: 20px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.small {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="background"></div>
+
+<div class="container">
+  <h1>💔 Divorce Predictor</h1>
+
+  <input type="text" id="name1" placeholder="Your Name">
+  <input type="number" id="age1" placeholder="Your Age">
+
+  <select id="gender1">
+    <option value="">Your Gender</option>
+    <option>Male</option>
+    <option>Female</option>
+    <option>Other</option>
+  </select>
+
+  <input type="text" id="name2" placeholder="Partner Name">
+  <input type="number" id="age2" placeholder="Partner Age">
+
+  <select id="gender2">
+    <option value="">Partner Gender</option>
+    <option>Male</option>
+    <option>Female</option>
+    <option>Other</option>
+  </select>
+
+  <button class="primary" onclick="calculate()">Check Risk 💔</button>
+  <button class="secondary" onclick="resetApp()">Reset</button>
+
+  <div id="result"></div>
+
+  <button id="shareBtn" style="display:none;" onclick="shareWhatsApp()">Share 📲</button>
+
+  <div class="small">
+    For entertainment only
+  </div>
+</div>
+
+<script>
+function fallback(n1,n2,a1,a2){
+  let base = n1.length*10 + n2.length*8;
+  let risk = (base + Math.abs(a1-a2)*5) % 100;
+
+  let msg = risk>70?"🚨 High risk breakup":
+            risk>40?"⚠️ Conflict likely":
+            "💖 Stable";
+
+  return {risk,msg};
+}
+
+async function calculate(){
+  let n1 = name1.value.trim();
+  let n2 = name2.value.trim();
+  let a1 = +age1.value;
+  let a2 = +age2.value;
+  let g1 = gender1.value;
+  let g2 = gender2.value;
+
+  if(!n1||!n2||!a1||!a2||!g1||!g2){
+    result.innerHTML="⚠️ Fill all fields";
+    return;
+  }
+
+  result.innerHTML="Analyzing... ⏳";
+
+  try {
+    let r = await fetch("https://your-backend-url/calculate",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({n1,n2,a1,a2,g1,g2})
+    });
+
+    let data = await r.json();
+    show(data.risk,data.message,a1,a2);
+
+  } catch {
+    let data = fallback(n1,n2,a1,a2);
+    show(data.risk,data.msg,a1,a2);
+  }
+}
+
+function show(risk,msg,a1,a2){
+  setTimeout(()=>{
+    result.innerHTML = `${risk}% 💔<br>${msg}<br>Age gap: ${Math.abs(a1-a2)}`;
+    shareBtn.style.display="inline-block";
+  },900);
+}
+
+function resetApp(){
+  location.reload();
+}
+
+function shareWhatsApp(){
+  window.open("https://wa.me/?text="+encodeURIComponent(result.innerText));
+}
+</script>
+
+</body>
+</html>
